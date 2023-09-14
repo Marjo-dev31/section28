@@ -27,10 +27,14 @@ async function fetchCommentsForPost() {
     const response = await fetch(`/posts/${postId}/comments`);
     const responseData = await response.json();
 
+
+    if (responseData && responseData.length > 0) {
     const commentsListElement = createCommentsList(responseData);
     commentsSectionElement.innerHTML = '';
     commentsSectionElement.appendChild(commentsListElement);
-
+    } else {
+commentsSectionElement.firstElementChild.textContent = 'No comments find, Maybe add one ?'
+  }
 };
 
 async function saveComment(event) {
@@ -48,7 +52,12 @@ async function saveComment(event) {
             'Content-Type': 'application/json'
         }
     });
+
+if (response.ok) {
 fetchCommentsForPost();
+} else {
+    alert('Could not send comment!')
+}
 };
 
 loadCommentsBtnElement.addEventListener('click', fetchCommentsForPost);
