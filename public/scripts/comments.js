@@ -22,43 +22,58 @@ function createCommentsList(comments) {
     return commentListElement
 };
 
+try {
 async function fetchCommentsForPost() {
     const postId = loadCommentsBtnElement.dataset.postid;
     const response = await fetch(`/posts/${postId}/comments`);
+
+if (!response.ok) {
+    alert('Fetching comments failed!');
+    return; /*erreur coté serveur*/
+}
+
     const responseData = await response.json();
 
-
     if (responseData && responseData.length > 0) {
-    const commentsListElement = createCommentsList(responseData);
-    commentsSectionElement.innerHTML = '';
-    commentsSectionElement.appendChild(commentsListElement);
+        const commentsListElement = createCommentsList(responseData);
+        commentsSectionElement.innerHTML = '';
+        commentsSectionElement.appendChild(commentsListElement);
     } else {
-commentsSectionElement.firstElementChild.textContent = 'No comments find, Maybe add one ?'
-  }
+        commentsSectionElement.firstElementChild.textContent = 'No comments find, Maybe add one ?'
+    }
+};
+} catch (error) {
+alert('Getting comments failed!'); /*erreur coté technique*/
 };
 
-async function saveComment(event) {
-    event.preventDefault();
-    const postId = commentsFormElement.dataset.postid;
-    const enteredTitle = commentTitleElement.value;
-    const enteredText = commentTextElement.value;
 
-    const comment = {title: enteredTitle, text: enteredText};
-    
-   const response = await fetch(`/posts/${postId}/comments`, {
-        method: 'POST',
-        body: JSON.stringify(comment),
-        headers: {
-            'Content-Type': 'application/json'
+try {
+    async function saveComment(event) {
+        event.preventDefault();
+        const postId = commentsFormElement.dataset.postid;
+        const enteredTitle = commentTitleElement.value;
+        const enteredText = commentTextElement.value;
+
+        const comment = { title: enteredTitle, text: enteredText };
+
+        const response = await fetch(`/posts/${postId}/comments`, {
+            method: 'POST',
+            body: JSON.stringify(comment),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            fetchCommentsForPost();
+        } else {
+            alert('Could not send comment!')
         }
-    });
-
-if (response.ok) {
-fetchCommentsForPost();
-} else {
-    alert('Could not send comment!')
-}
+    };
+} catch (error) {
+    alert('Could not sent request - maybe try later!');
 };
+
 
 loadCommentsBtnElement.addEventListener('click', fetchCommentsForPost);
 commentsFormElement.addEventListener('submit', saveComment);
